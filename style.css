@@ -74,6 +74,28 @@ input:-webkit-autofill:active {
     border-radius: 20px;
     border: 2px solid #f0e68c; /* Золотистая рамка */
 }
+/* Контейнер поля ввода */
+[data-testid="stTextInput"] {
+    background: #222222 !important; /* Темный фон для поля ввода */
+    border-radius: 15px !important;
+    border: 2px solid #f0e68c !important; /* Золотистая рамка */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 90% !important; /* Добавляем ширину, чтобы он занимал почти всю доступную ширину */
+    /* Или можешь использовать max-width, если хочешь ограничить максимальную ширину */
+    /* max-width: 1200px !important; */
+}
+
+/* Само поле ввода внутри контейнера */
+[data-testid="stTextInput"] input {
+    background: transparent !important;
+    color: #f0e68c !important; /* Золотистый текст */
+    font-size: 1.3rem !important;
+    padding: 25px 30px !important;
+    min-height: 80px !important;
+    border: none !important;
+    outline: none !important;
+    width: 100% !important; /* Убедимся, что само поле ввода заполняет свой контейнер */
+}
 
 /* Стили для вспомогательных сообщений */
 .big-success-message, .user-question, .spinner-text, .big-warning-message, .big-error-message {
