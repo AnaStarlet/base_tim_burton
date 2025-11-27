@@ -63,7 +63,7 @@ st.markdown("---")
 # --- ПОЛЕ ДЛЯ ВВОДА ТЕКСТА и КНОПКА (ПЕРЕМЕЩЕНО ВЫШЕ) ---
 user_query = st.text_input(
     label=" ",
-    placeholder="Спросите меня о фильмах, персонажах, стиле Тима Бёртона...",
+    
     key="user_input_box",
     label_visibility="collapsed"
 )
