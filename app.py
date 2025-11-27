@@ -18,24 +18,9 @@ def local_css(file_name):
 # Применяем стили из файла style.css
 local_css("style.css")
 
-
 # --- Получение API ключа из секретов Streamlit ---
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# --- Функция для загрузки и форматирования базы знаний ---
-@st.cache_data
-def create_knowledge_base():
-    """Читает CSV-файл и возвращает DataFrame."""
-    try:
-        # ИСПОЛЬЗУЕМ ЗАПЯТУЮ "," КАК РАЗДЕЛИТЕЛЬ ДЛЯ EXCEL
-        works_df = pd.read_csv("tim_burton_data.csv", sep=',').astype(str).fillna('не указано')
-        return works_df
-    except FileNotFoundError:
-        st.error("Ошибка: файл 'tim_burton_data.csv' не найден. Пожалуйста, убедись, что он находится в той же папке, что и скрипт, и использует разделитель ','.")
-        return None
-    except Exception as e:
-        st.error(f"Ошибка при загрузке данных: {e}")
-        return None
 # --- Функция для загрузки и форматирования базы знаний ---
 @st.cache_data
 def create_knowledge_base():
@@ -61,6 +46,7 @@ def create_knowledge_base():
         except:
             pass
         return None
+
 # === Начало интерфейса приложения ===
 
 st.title("🦇 Тим Бёртон Ассистент")
@@ -87,9 +73,8 @@ if works_dataframe is not None and GROQ_API_KEY:
     try:
         # Инициализируем клиент для обращения к AI-модели
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY)
-        # --- ИЗМЕНЕНИЕ МОДЕЛИ ЗДЕСЬ ---
-        model_name = "llama-3.1-8b-instant"  # Самая новая и быстрая
-        # --- КОНЕЦ ИЗМЕНЕНИЯ МОДЕЛИ ---
+        # Используем актуальную модель
+        model_name = "llama-3.1-8b-instant"
     except Exception as e:
         st.error(f"Ошибка инициализации клиента: {e}")
         client = None
@@ -113,7 +98,6 @@ if works_dataframe is not None and GROQ_API_KEY:
                     knowledge_base_text_for_model += f"Продолжительность: {work.get('Duration', 'не указано')}\n"
                     knowledge_base_text_for_model += f"Слоган: {work.get('Tagline', 'не указано')}\n"
                     knowledge_base_text_for_model += f"Страна: {work.get('Country', 'не указано')}\n"
-
 
                 # Формируем промпт (инструкцию) для AI-модели
                 prompt = f"""Твоя роль - быть экспертом по творчеству Тима Бёртона. Ты должен отвечать на вопросы, основываясь ИСКЛЮЧИТЕЛЬНО на предоставленных данных.
@@ -169,29 +153,51 @@ if works_dataframe is not None and GROQ_API_KEY:
                 try:
                     # Разделяем ответ на рассуждения и финальный ответ
                     reasoning_part, final_answer_part = answer.split("[ОТВЕТ]")
-                    reasoning_text = reasoning_part.replace("[РАССУЖДЕНИЯ]", "").strip()
                     final_answer_text = final_answer_part.strip()
                     
-                    # Форматируем для HTML вывода
-                    reasoning_html = reasoning_text.replace('\n', '<br>')
+                    # Форматируем только финальный ответ
                     final_answer_html = final_answer_text.replace('\n', '<br>')
-
-                    full_response_html = f"{reasoning_html}<br><br><hr><br><strong>{final_answer_html}</strong>"
+                    
+                    # Простой и чистый вывод
+                    full_response_html = f"""
+                    <div style="margin: 20px 0;">
+                        <h3 style="color: #f0e68c; text-align: center;">🎭 Результат поиска</h3>
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #f0e68c;">
+                            <div style="font-size: 1.2em; line-height: 1.6;">
+                                {final_answer_html}
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    
                 except ValueError:
-                    # Если формат не соответствует ожидаемому, выводим как есть
-                    full_response_html = answer.replace("[РАССУЖДЕНИЯ]", "").replace("[ОТВЕТ]", "").replace('\n', '<br>').strip()
+                    # Если формат не соответствует ожидаемому, выводим чистый ответ
+                    clean_answer = answer.replace("[РАССУЖДЕНИЯ]", "").replace("[ОТВЕТ]", "").strip()
+                    final_answer_html = clean_answer.replace('\n', '<br>')
+                    
+                    full_response_html = f"""
+                    <div style="margin: 20px 0;">
+                        <h3 style="color: #f0e68c; text-align: center;">🎭 Результат поиска</h3>
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #f0e68c;">
+                            <div style="font-size: 1.2em; line-height: 1.6;">
+                                {final_answer_html}
+                            </div>
+                        </div>
+                    </div>
+                    """
 
                 # Выводим результат на страницу
-                answer_placeholder.markdown(f'<div class="answer-text">{full_response_html}</div>', unsafe_allow_html=True)
+                answer_placeholder.markdown(full_response_html, unsafe_allow_html=True)
 
             except Exception as e:
                 answer_placeholder.markdown(f'<div class="error-message">🎃 Произошла ошибка: {e}</div>', unsafe_allow_html=True)
+    
     # Если пользователь нажал кнопку, но не ввел вопрос
     elif not user_query and ask_button:
         answer_placeholder.markdown('<div class="warning-message">❓ Пожалуйста, введите ваш вопрос!</div>', unsafe_allow_html=True)
 
 # Если база знаний не загрузилась или API ключ не установлен
-elif not works_dataframe: # Проверяем, что DataFrame загружен
+elif not works_dataframe:
     answer_placeholder.markdown('<div class="error-message">💀 Критическая ошибка: Не удалось загрузить базу знаний. Проверьте файл "tim_burton_data.csv".</div>', unsafe_allow_html=True)
 elif not GROQ_API_KEY:
     answer_placeholder.markdown('<div class="error-message">🔑 Ошибка API: Не установлен ключ GROQ. Проверьте ваши секреты Streamlit или переменную окружения.</div>', unsafe_allow_html=True)
