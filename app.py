@@ -36,7 +36,31 @@ def create_knowledge_base():
     except Exception as e:
         st.error(f"Ошибка при загрузке данных: {e}")
         return None
-
+# --- Функция для загрузки и форматирования базы знаний ---
+@st.cache_data
+def create_knowledge_base():
+    """Читает CSV-файл и возвращает DataFrame."""
+    try:
+        # Пробуем разные разделители
+        try:
+            works_df = pd.read_csv("tim_burton_data.csv", sep=',').astype(str).fillna('не указано')
+        except:
+            works_df = pd.read_csv("tim_burton_data.csv", sep=';').astype(str).fillna('не указано')
+        
+        st.success(f"✅ Успешно загружено {len(works_df)} произведений")
+        return works_df
+    except Exception as e:
+        st.error(f"Ошибка при загрузке данных: {e}")
+        # Показываем первые строки файла для отладки
+        try:
+            with open("tim_burton_data.csv", "r", encoding="utf-8") as f:
+                preview = f.readlines()[:3]
+                st.text("Первые строки файла:")
+                for line in preview:
+                    st.text(line)
+        except:
+            pass
+        return None
 # === Начало интерфейса приложения ===
 
 st.title("🦇 Тим Бёртон Ассистент")
