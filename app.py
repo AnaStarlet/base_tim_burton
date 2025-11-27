@@ -47,7 +47,7 @@ def create_knowledge_base():
         except:
             works_df = pd.read_csv("tim_burton_data.csv", sep=';').astype(str).fillna('не указано')
         
-        st.success(f"✅ Успешно загружено {len(works_df)} произведений")
+        st.success(f" ")
         return works_df
     except Exception as e:
         st.error(f"Ошибка при загрузке данных: {e}")
