@@ -1,122 +1,141 @@
 @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Irish+Grover&family=Press+Start+2P&family=Rock+Salt&family=Special+Elite&display=swap');
 
 body, .stApp {
-    font-family: 'Special Elite', cursive; /* Шрифт, напоминающий пишущую машинку */
-    background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); /* Темный, мрачный фон */
+    font-family: 'Special Elite', cursive;
+    background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
     color: #e0e0e0 !important;
 }
 
 /* Фирменный фиолетовый фон */
 [data-testid="stHeader"] {
-    background: linear-gradient(135deg, #4b0082 0%, #8a2be2 100%); /* Темно-фиолетовый градиент */
+    background: linear-gradient(135deg, #4b0082 0%, #8a2be2 100%);
 }
 
 /* Стили для заголовков */
 h1, h3 {
-    color: #f0e68c !important; /* Цвет золотистый, как в "Чарли и шоколадной фабрике" */
+    color: #f0e68c !important;
     text-align: center;
-    font-family: 'Irish Grover', cursive; /* Более декоративный шрифт для заголовков */
+    font-family: 'Irish Grover', cursive;
 }
-h1 { font-size: 6rem !important; font-weight: 700; }
-h3 { font-size: 2.5rem !important; font-weight: 400; }
-
+h1 { font-size: 3rem !important; font-weight: 700; }
+h3 { font-size: 1.8rem !important; font-weight: 400; }
 
 /* Контейнер поля ввода */
 [data-testid="stTextInput"] {
-    background: #222222 !important; /* Темный фон для поля ввода */
+    background: #222222 !important;
     border-radius: 15px !important;
-    border: 2px solid #f0e68c !important; /* Золотистая рамка */
+    border: 2px solid #f0e68c !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 90% !important;
+    margin: 0 auto !important;
 }
 
 /* Само поле ввода внутри контейнера */
 [data-testid="stTextInput"] input {
     background: transparent !important;
-    color: #f0e68c !important; /* Золотистый текст */
-    font-size: 1.3rem !important;
-    padding: 25px 30px !important;
-    min-height: 80px !important;
+    color: #f0e68c !important;
+    font-size: 1.1rem !important;
+    padding: 20px 25px !important;
+    min-height: 60px !important;
     border: none !important;
     outline: none !important;
+    width: 100% !important;
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 40px #222222 inset !important; /* Темный фон при автозаполнении */
-    -webkit-text-fill-color: #f0e68c !important; /* Золотистый текст при автозаполнении */
+    -webkit-box-shadow: 0 0 0 40px #222222 inset !important;
+    -webkit-text-fill-color: #f0e68c !important;
     transition: background-color 5000s ease-in-out 0s;
     border-radius: 15px !important;
 }
 
-
-/* Стили для кнопки "Найти ответ" */
+/* Стили для кнопки "Найти ответ" - ИСПРАВЛЕН РАЗМЕР */
 .stButton button {
-    border-radius: 30px !important;
-    padding: 25px 40px !important;
-    font-size: 3rem !important;
+    border-radius: 20px !important;
+    padding: 15px 30px !important;
+    font-size: 1.5rem !important; /* Уменьшен с 3rem */
     font-weight: 700;
-    background: linear-gradient(45deg, #800080, #9370db) !important; /* Фиолетово-сиреневый градиент */
-    color: #f0e68c !important; /* Золотистый текст */
+    background: linear-gradient(45deg, #800080, #9370db) !important;
+    color: #f0e68c !important;
     border: 2px solid #f0e68c !important;
-    font-family: 'Creepster', cursive; /* Шрифт для кнопки */
+    font-family: 'Creepster', cursive;
     text-shadow: 2px 2px 4px #000000;
+    width: auto !important;
+    min-width: 200px !important;
+    margin: 20px auto !important;
+    display: block !important;
 }
 
 /* Стиль для блока с финальным ответом */
-.big-answer-text {
-    font-size: 1.5rem !important;
+.answer-text {
+    font-size: 1.2rem !important;
     line-height: 1.6;
-    background: #222222; /* Темный фон */
-    color: #e0e0e0 !important; /* Светлый текст */
-    padding: 2.5rem;
-    border-radius: 20px;
-    border: 2px solid #f0e68c; /* Золотистая рамка */
-}
-/* Контейнер поля ввода */
-[data-testid="stTextInput"] {
-    background: #222222 !important; /* Темный фон для поля ввода */
-    border-radius: 15px !important;
-    border: 2px solid #f0e68c !important; /* Золотистая рамка */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    width: 90% !important; /* Добавляем ширину, чтобы он занимал почти всю доступную ширину */
-    /* Или можешь использовать max-width, если хочешь ограничить максимальную ширину */
-    /* max-width: 1200px !important; */
-}
-
-/* Само поле ввода внутри контейнера */
-[data-testid="stTextInput"] input {
-    background: transparent !important;
-    color: #f0e68c !important; /* Золотистый текст */
-    font-size: 1.3rem !important;
-    padding: 25px 30px !important;
-    min-height: 80px !important;
-    border: none !important;
-    outline: none !important;
-    width: 100% !important; /* Убедимся, что само поле ввода заполняет свой контейнер */
+    background: #222222;
+    color: #e0e0e0 !important;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #f0e68c;
+    margin-top: 20px;
 }
 
 /* Стили для вспомогательных сообщений */
 .big-success-message, .user-question, .spinner-text, .big-warning-message, .big-error-message {
-    font-size: 2.5rem !important;
+    font-size: 1.5rem !important; /* Уменьшен с 2.5rem */
     text-align: center;
     font-weight: 600;
-    color: #f0e68c !important; /* Золотистый цвет */
-    font-family: 'Creepster', cursive; /* Декоративный шрифт */
+    color: #f0e68c !important;
+    font-family: 'Creepster', cursive;
     text-shadow: 2px 2px 4px #000000;
+    margin: 15px 0;
 }
+
 .big-error-message {
-    color: #ff6b6b !important; /* Красный для ошибок */
+    color: #ff6b6b !important;
+}
+
+.warning-message {
+    color: #ffa500 !important;
+    font-size: 1.3rem !important;
+    text-align: center;
+    font-family: 'Special Elite', cursive;
 }
 
 .user-question {
-    font-size: 2rem !important;
-    color: #c0c0c0 !important; /* Более приглушенный цвет для вопроса */
-    font-family: 'Special Elite', cursive; /* Шрифт для вопроса */
+    font-size: 1.3rem !important; /* Уменьшен с 2rem */
+    color: #c0c0c0 !important;
+    font-family: 'Special Elite', cursive;
 }
 
 .spinner-text {
-    font-size: 2rem !important;
+    font-size: 1.5rem !important; /* Уменьшен с 2rem */
     font-family: 'Irish Grover', cursive;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    h1 { font-size: 2rem !important; }
+    h3 { font-size: 1.3rem !important; }
+    
+    .stButton button {
+        font-size: 1.2rem !important;
+        padding: 12px 25px !important;
+    }
+    
+    [data-testid="stTextInput"] {
+        width: 95% !important;
+    }
+    
+    [data-testid="stTextInput"] input {
+        font-size: 1rem !important;
+        padding: 15px 20px !important;
+        min-height: 50px !important;
+    }
+    
+    .answer-text {
+        font-size: 1rem !important;
+        padding: 1.5rem;
+    }
 }
