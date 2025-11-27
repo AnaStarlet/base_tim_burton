@@ -51,6 +51,55 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
     border-radius: 15px !important;
 }
+/* Стили для секции с фильмами */
+.films-list {
+    background: rgba(34, 34, 34, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #f0e68c;
+    margin: 15px 0;
+}
+
+.reasoning-section {
+    margin-bottom: 30px;
+}
+
+.final-answer-section {
+    background: rgba(34, 34, 34, 0.9);
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid #9370db;
+}
+
+.final-answer {
+    font-size: 1.3rem !important;
+    line-height: 1.8;
+    color: #f0e68c !important;
+    text-align: center;
+}
+
+/* Улучшенные стили для ответов */
+.answer-text {
+    font-size: 1.2rem !important;
+    line-height: 1.6;
+    background: #222222;
+    color: #e0e0e0 !important;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #f0e68c;
+    margin-top: 20px;
+}
+
+/* Анимация для загрузки */
+@keyframes spooky {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+.spinner-text {
+    animation: spooky 2s infinite;
+}
 
 /* Стили для кнопки "Найти ответ" - ИСПРАВЛЕН РАЗМЕР */
 .stButton button {
