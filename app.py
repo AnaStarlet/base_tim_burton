@@ -27,26 +27,11 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # --- Функция для загрузки и форматирования базы знаний ---
 @st.cache_data
 def create_knowledge_base():
-    """Читает CSV-файл и преобразует его в единый текстовый блок для AI-модели."""
+    """Читает CSV-файл и возвращает DataFrame."""
     try:
         # Указываем разделитель ';' так как в CSV файле он используется
         works_df = pd.read_csv("tim_burton_data.csv", sep=';').astype(str).fillna('не указано')
-        knowledge_base = ""
-        for _, work in works_df.iterrows():
-            knowledge_base += "-----\n"
-            knowledge_base += f"Название: {work['Name']}\n"
-            knowledge_base += f"Ссылки на Notion: {work.get('Notion links', 'не указано')}\n"
-            knowledge_base += f"Бюджет: {work.get('Budget', 'не указано')}\n"
-            knowledge_base += f"Возрастной рейтинг: {work.get('Age rating', 'не указано')}\n"
-            knowledge_base += f"Год выпуска: {work.get('Release year', 'не указано')}\n"
-            knowledge_base += f"Сборы: {work.get('Box office', 'не указано')}\n"
-            knowledge_base += f"Ссылки на фильмы: {work.get('Movie links', 'не указано')}\n"
-            knowledge_base += f"Оригинальное название: {work.get('Original title', 'не указано')}\n"
-            knowledge_base += f"Краткое описание: {work.get('Synopsis', 'не указано')}\n"
-            knowledge_base += f"Продолжительность: {work.get('Duration', 'не указано')}\n"
-            knowledge_base += f"Слоган: {work.get('Tagline', 'не указано')}\n"
-            knowledge_base += f"Страна: {work.get('Country', 'не указано')}\n"
-        return knowledge_base
+        return works_df
     except FileNotFoundError:
         st.error("Ошибка: файл 'tim_burton_data.csv' не найден. Пожалуйста, убедись, что он находится в той же папке, что и скрипт, и использует разделитель ';'.")
         return None
@@ -63,31 +48,31 @@ st.markdown("---")
 # --- ПОЛЕ ДЛЯ ВВОДА ТЕКСТА и КНОПКА (ПЕРЕМЕЩЕНО ВЫШЕ) ---
 user_query = st.text_input(
     label=" ",
-    
+    placeholder="Спросите меня о фильмах, персонажах, стиле Тима Бёртона...",
     key="user_input_box",
     label_visibility="collapsed"
 )
 
-# Удаляем или уменьшаем отступ, если строка ввода стала выше
-# st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
+# Убрали лишний отступ
+# st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
 
 ask_button = st.button("**НАЙТИ ОТВЕТ**", use_container_width=True, key="find_answer")
 # --- КОНЕЦ ПЕРЕМЕЩЕННОГО БЛОКА ---
 
 
 # Загружаем базу знаний
-knowledge_base_text = create_knowledge_base()
+works_dataframe = create_knowledge_base()
 # Создаем пустой контейнер, куда позже выведем ответ
 answer_placeholder = st.empty()
 
 # Проверяем, что все готово к работе
-if knowledge_base_text and GROQ_API_KEY:
+if works_dataframe is not None and GROQ_API_KEY:
     try:
         # Инициализируем клиент для обращения к AI-модели
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY)
         # --- ИЗМЕНЕНИЕ МОДЕЛИ ЗДЕСЬ ---
-        # Замени устаревшую модель на новую
-        model_name = "llama3-8b-it" # Теперь используется актуальная модель Llama 3 8B Instruct
+        # Используем актуальную модель Llama 3 8B Instruct
+        model_name = "llama3-8b-it"
         # --- КОНЕЦ ИЗМЕНЕНИЯ МОДЕЛИ ---
     except Exception as e:
         st.error(f"Ошибка инициализации клиента: {e}")
@@ -98,6 +83,22 @@ if knowledge_base_text and GROQ_API_KEY:
         with st.spinner(""):
             st.markdown("<div class='spinner-text'>✨ Погружаюсь в атмосферу Бёртона...</div>", unsafe_allow_html=True)
             try:
+                # Преобразуем DataFrame в текстовый формат для модели
+                knowledge_base_text_for_model = ""
+                for _, work in works_dataframe.iterrows():
+                    knowledge_base_text_for_model += "-----\n"
+                    knowledge_base_text_for_model += f"Название: {work['Name']}\n"
+                    knowledge_base_text_for_model += f"Бюджет: {work.get('Budget', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Возрастной рейтинг: {work.get('Age rating', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Год выпуска: {work.get('Release year', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Сборы: {work.get('Box office', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Оригинальное название: {work.get('Original title', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Краткое описание: {work.get('Synopsis', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Продолжительность: {work.get('Duration', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Слоган: {work.get('Tagline', 'не указано')}\n"
+                    knowledge_base_text_for_model += f"Страна: {work.get('Country', 'не указано')}\n"
+
+
                 # Формируем промпт (инструкцию) для AI-модели
                 prompt = f"""Твоя роль - быть экспертом по творчеству Тима Бёртона. Ты должен отвечать на вопросы, основываясь ИСКЛЮЧИТЕЛЬНО на предоставленных данных.
 
@@ -134,13 +135,12 @@ if knowledge_base_text and GROQ_API_KEY:
 - Суини Тодд, демон-парикмахер с Флит-стрит
 
 ДАННЫЕ:
-{knowledge_base_text}
+{knowledge_base_text_for_model}
 
 ВОПРОС: {user_query}
 
 ОТВЕТ В СТРОГОМ ФОРМАТЕ:"""
 
-                # Отправляем запрос к AI-модели
                 response = client.chat.completions.create(
                     model=model_name,
                     messages=[{"role": "user", "content": prompt}],
@@ -166,19 +166,16 @@ if knowledge_base_text and GROQ_API_KEY:
                     full_response_html = answer.replace("[РАССУЖДЕНИЯ]", "").replace("[ОТВЕТ]", "").replace('\n', '<br>').strip()
 
                 # Выводим результат на страницу
-                answer_placeholder.markdown(f'<div class="big-success-message">🦇 Найдено! Погружаемся в атмосферу Бёртона...</div>', unsafe_allow_html=True)
-                st.markdown(f'<div class="user-question">Ваш вопрос: {user_query}</div>', unsafe_allow_html=True)
-                st.markdown("---")
-                st.markdown(f'<div class="big-answer-text">{full_response_html}</div>', unsafe_allow_html=True)
+                answer_placeholder.markdown(f'<div class="answer-text">{full_response_html}</div>', unsafe_allow_html=True)
 
             except Exception as e:
-                answer_placeholder.markdown(f'<div class="big-error-message">🎃 Произошла ошибка: {e}</div>', unsafe_allow_html=True)
+                answer_placeholder.markdown(f'<div class="error-message">🎃 Произошла ошибка: {e}</div>', unsafe_allow_html=True)
     # Если пользователь нажал кнопку, но не ввел вопрос
     elif not user_query and ask_button:
-        answer_placeholder.markdown('<div class="big-warning-message">❓ Пожалуйста, введите ваш вопрос!</div>', unsafe_allow_html=True)
+        answer_placeholder.markdown('<div class="warning-message">❓ Пожалуйста, введите ваш вопрос!</div>', unsafe_allow_html=True)
 
 # Если база знаний не загрузилась или API ключ не установлен
-elif not knowledge_base_text:
-    answer_placeholder.markdown('<div class="big-error-message">💀 Критическая ошибка: Не удалось загрузить базу знаний. Проверьте файл "tim_burton_data.csv".</div>', unsafe_allow_html=True)
+elif not works_dataframe: # Проверяем, что DataFrame загружен
+    answer_placeholder.markdown('<div class="error-message">💀 Критическая ошибка: Не удалось загрузить базу знаний. Проверьте файл "tim_burton_data.csv".</div>', unsafe_allow_html=True)
 elif not GROQ_API_KEY:
-    answer_placeholder.markdown('<div class="big-error-message">🔑 Ошибка API: Не установлен ключ GROQ. Проверьте ваши секреты Streamlit или переменную окружения.</div>', unsafe_allow_html=True)
+    answer_placeholder.markdown('<div class="error-message">🔑 Ошибка API: Не установлен ключ GROQ. Проверьте ваши секреты Streamlit или переменную окружения.</div>', unsafe_allow_html=True)
