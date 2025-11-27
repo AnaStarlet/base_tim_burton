@@ -88,7 +88,7 @@ if works_dataframe is not None and GROQ_API_KEY:
         # Инициализируем клиент для обращения к AI-модели
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY)
         # --- ИЗМЕНЕНИЕ МОДЕЛИ ЗДЕСЬ ---
-        model_name = "llama3-8b-it" # Теперь используется актуальная модель Llama 3 8B Instruct
+        model_name = "llama-3.1-8b-instant"  # Самая новая и быстрая
         # --- КОНЕЦ ИЗМЕНЕНИЯ МОДЕЛИ ---
     except Exception as e:
         st.error(f"Ошибка инициализации клиента: {e}")
