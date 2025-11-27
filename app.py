@@ -82,7 +82,6 @@ if works_dataframe is not None and GROQ_API_KEY:
     # Основная логика: выполняется, если есть клиент, есть запрос и нажата кнопка
     if client and user_query and ask_button:
         with st.spinner(""):
-            st.markdown("<div class='spinner-text'>✨ Погружаюсь в атмосферу Бёртона...</div>", unsafe_allow_html=True)
             try:
                 # Преобразуем DataFrame в текстовый формат для модели
                 knowledge_base_text_for_model = ""
