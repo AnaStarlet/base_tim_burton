@@ -60,7 +60,7 @@ st.title("🦇 Тим Бёртон Ассистент")
 st.markdown("### Ваш личный гид по мрачному, но волшебному миру Тима Бёртона!")
 st.markdown("---")
 
-# --- Поле для ввода текста ---
+# --- ПОЛЕ ДЛЯ ВВОДА ТЕКСТА и КНОПКА (ПЕРЕМЕЩЕНО ВЫШЕ) ---
 user_query = st.text_input(
     label=" ",
     placeholder="Спросите меня о фильмах, персонажах, стиле Тима Бёртона...",
@@ -68,9 +68,12 @@ user_query = st.text_input(
     label_visibility="collapsed"
 )
 
-st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
+# Удаляем или уменьшаем отступ, если строка ввода стала выше
+# st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
 
 ask_button = st.button("**НАЙТИ ОТВЕТ**", use_container_width=True, key="find_answer")
+# --- КОНЕЦ ПЕРЕМЕЩЕННОГО БЛОКА ---
+
 
 # Загружаем базу знаний
 knowledge_base_text = create_knowledge_base()
@@ -82,8 +85,10 @@ if knowledge_base_text and GROQ_API_KEY:
     try:
         # Инициализируем клиент для обращения к AI-модели
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY)
-        # Llama 3 8B Instruct - отличный выбор для детализированных ответов
-        model_name = "llama3-8b-8192"
+        # --- ИЗМЕНЕНИЕ МОДЕЛИ ЗДЕСЬ ---
+        # Замени устаревшую модель на новую
+        model_name = "llama3-8b-it" # Теперь используется актуальная модель Llama 3 8B Instruct
+        # --- КОНЕЦ ИЗМЕНЕНИЯ МОДЕЛИ ---
     except Exception as e:
         st.error(f"Ошибка инициализации клиента: {e}")
         client = None
@@ -161,7 +166,7 @@ if knowledge_base_text and GROQ_API_KEY:
                     full_response_html = answer.replace("[РАССУЖДЕНИЯ]", "").replace("[ОТВЕТ]", "").replace('\n', '<br>').strip()
 
                 # Выводим результат на страницу
-                answer_placeholder.markdown(f'<div class="big-success-message">🦇 Найдено! Погружаемся в мир Тима Бёртона...</div>', unsafe_allow_html=True)
+                answer_placeholder.markdown(f'<div class="big-success-message">🦇 Найдено! Погружаемся в атмосферу Бёртона...</div>', unsafe_allow_html=True)
                 st.markdown(f'<div class="user-question">Ваш вопрос: {user_query}</div>', unsafe_allow_html=True)
                 st.markdown("---")
                 st.markdown(f'<div class="big-answer-text">{full_response_html}</div>', unsafe_allow_html=True)
