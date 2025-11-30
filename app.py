@@ -268,14 +268,19 @@ with st.sidebar:
     произведениями.
     """)
     
-    # Кнопка "Назад" - ДОБАВЬТЕ ЭТОТ КОД
+    # Кнопка "Назад" - ИСПРАВЛЕННАЯ ВЕРСИЯ
     st.markdown("---")
-    if st.button("⬅️ Назад", use_container_width=True):
-        st.markdown(
-            """
-            <script>
-                window.open('https://quixotic-shrimp-ea9.notion.site/9aabb68bd7004965819318e32d8ff06e?v=2b4a0ca7844a80d6aa8a000c6a7e5272', '_self');
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+    if st.button("⬅️ Назад", use_container_width=True, key="back_main"):
+        # Создаем ссылку, которую пользователь может скопировать или открыть в новой вкладке
+        st.markdown("""
+        <div style='background-color: #2b2b2b; padding: 15px; border-radius: 10px; border: 1px solid #f0e68c;'>
+            <h4 style='color: #f0e68c; margin-top: 0;'>Перейти на главную страницу</h4>
+            <p style='margin-bottom: 10px;'>Нажмите на ссылку ниже:</p>
+            <a href='https://quixotic-shrimp-ea9.notion.site/9aabb68bd7004965819318e32d8ff06e?v=2b4a0ca7844a80d6aa8a000c6a7e5272' 
+               target='_blank' 
+               style='color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 16px;'>
+               🏠 Главная страница проекта
+            </a>
+            <p style='margin-top: 10px; font-size: 12px; color: #ccc;'>Ссылка откроется в новой вкладке</p>
+        </div>
+        """, unsafe_allow_html=True)
