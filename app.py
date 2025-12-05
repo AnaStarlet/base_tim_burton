@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from openai import OpenAI
 import os
+import urllib.parse  # Добавили для создания корректных ссылок
 
 # --- Настройки страницы ---
 st.set_page_config(page_title="Тим Бёртон Ассистент", page_icon="🦇", layout="wide")
@@ -26,23 +27,13 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 def create_knowledge_base():
     """Читает CSV-файл и возвращает DataFrame."""
     try:
-        # Пробуем разные разделители
         try:
             works_df = pd.read_csv("tim_burton_data.csv", sep=',').astype(str).fillna('не указано')
         except:
             works_df = pd.read_csv("tim_burton_data.csv", sep=';').astype(str).fillna('не указано')
-        
         return works_df
     except Exception as e:
         st.error(f"Ошибка при загрузке данных: {e}")
-        try:
-            with open("tim_burton_data.csv", "r", encoding="utf-8") as f:
-                preview = f.readlines()[:3]
-                st.text("Первые строки файла:")
-                for line in preview:
-                    st.text(line)
-        except:
-            pass
         return None
 
 # === Начало интерфейса приложения ===
@@ -62,25 +53,22 @@ ask_button = st.button("**НАЙТИ ОТВЕТ**", use_container_width=True, ke
 
 # Загружаем базу знаний
 works_dataframe = create_knowledge_base()
-# Создаем пустой контейнер, куда позже выведем ответ
 answer_placeholder = st.empty()
 
 # Проверяем, что все готово к работе
 if works_dataframe is not None and GROQ_API_KEY:
     try:
-        # Инициализируем клиент для обращения к AI-модели
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=GROQ_API_KEY)
         model_name = "llama-3.1-8b-instant"
     except Exception as e:
         st.error(f"Ошибка инициализации клиента: {e}")
         client = None
 
-    # Основная логика: выполняется, если есть клиент, есть запрос и нажата кнопка
     if client and user_query and ask_button:
         with st.spinner(""):
             st.markdown("<div class='spinner-text'>✨ Погружаюсь в атмосферу Бёртона...</div>", unsafe_allow_html=True)
             try:
-                # Преобразуем DataFrame в текстовый формат для модели
+                # Подготовка данных
                 knowledge_base_text_for_model = ""
                 for _, work in works_dataframe.iterrows():
                     knowledge_base_text_for_model += "-----\n"
@@ -95,15 +83,14 @@ if works_dataframe is not None and GROQ_API_KEY:
                     knowledge_base_text_for_model += f"Слоган: {work.get('Tagline', 'не указано')}\n"
                     knowledge_base_text_for_model += f"Страна: {work.get('Country', 'не указано')}\n"
 
-                # Формируем промпт (инструкцию) для AI-модели
-                # !!! ИЗМЕНЕНИЕ ЗДЕСЬ В ПУНКТЕ 4 !!!
+                # Промпт
                 prompt = f"""Твоя роль - быть экспертом по творчеству Тима Бёртона. Ты должен отвечать на вопросы, основываясь ИСКЛЮЧИТЕЛЬНО на предоставленных данных.
 
 СТРОГИЕ ИНСТРУКЦИИ:
 1.  **ПОЛНЫЙ ПОИСК:** Найди ВСЕ записи, которые соответствуют запросу пользователя.
 2.  **ПОЛНАЯ ИНФОРМАЦИЯ:** В блоке [РАССУЖДЕНИЯ] покажи ВСЕ найденные фильмы с ПОЛНОЙ информацией о каждом.
 3.  **НИКАКИХ ДОГАДОК:** Отвечай ИСКЛЮЧИТЕЛЬНО на основе предоставленных данных.
-4.  **ФИЛЬТР ТЕМЫ И НАЛИЧИЯ ДАННЫХ:** Если запрос пользователя НЕ КАСАЕТСЯ актёров, фильмов, Тима Бёртона, его жанров, композиторов или персонажей его фильмов, ИЛИ если ответа нет в предоставленных данных, твой ответ должен быть СТРОГО одной фразой без тегов форматирования: "Извините, такого нет в базе, попробуйте поискать в интернете".
+4.  **ФИЛЬТР ТЕМЫ:** Если запрос пользователя НЕ КАСАЕТСЯ актёров, фильмов, Тима Бёртона, его жанров, композиторов или персонажей его фильмов, ИЛИ если ответа нет в предоставленных данных, твой ответ должен быть СТРОГО одной фразой: "NOT_FOUND_IN_DB".
 5.  **ФОРМАТ ОТВЕТА (ЕСЛИ ИНФОРМАЦИЯ НАЙДЕНА):** 
     [РАССУЖДЕНИЯ]
     ПОИСКОВЫЕ РЕЗУЛЬТАТЫ:
@@ -140,107 +127,94 @@ if works_dataframe is not None and GROQ_API_KEY:
                 )
                 answer = response.choices[0].message.content
 
-                # Обрабатываем и форматируем ответ для красивого вывода
-                try:
-                    # Разделяем ответ на рассуждения и финальный ответ
-                    reasoning_part, final_answer_part = answer.split("[ОТВЕТ]")
-                    reasoning_text = reasoning_part.replace("[РАССУЖДЕНИЯ]", "").strip()
-                    final_answer_text = final_answer_part.strip()
+                # === ОБРАБОТКА ОТВЕТА ===
+                
+                # Проверяем, вернула ли модель флаг "NOT_FOUND_IN_DB"
+                if "NOT_FOUND_IN_DB" in answer:
+                    # Создаем ссылку на поиск в Google
+                    encoded_query = urllib.parse.quote(user_query)
+                    google_search_url = f"https://www.google.com/search?q={encoded_query}"
                     
-                    # Форматируем для HTML вывода с эмодзи и стилями
-                    reasoning_html = reasoning_text.replace('\n', '<br>')
-                    reasoning_html = reasoning_html.replace('🎬', '<span style="font-size: 1.3em;">🎬</span>')
-                    reasoning_html = reasoning_html.replace('🎭', '🎭')
-                    reasoning_html = reasoning_html.replace('💰', '💰')
-                    reasoning_html = reasoning_html.replace('🔞', '🔞')
-                    reasoning_html = reasoning_html.replace('📅', '📅')
-                    reasoning_html = reasoning_html.replace('🎫', '🎫')
-                    reasoning_html = reasoning_html.replace('🌎', '🌎')
-                    reasoning_html = reasoning_html.replace('📖', '📖')
-                    reasoning_html = reasoning_html.replace('⏱️', '⏱️')
-                    reasoning_html = reasoning_html.replace('💬', '💬')
-                    reasoning_html = reasoning_html.replace('🏴', '🏴')
-                    
-                    final_answer_html = final_answer_text.replace('\n', '<br>')
-                    final_answer_html = final_answer_html.replace('🎬', '<span style="font-size: 1.2em;">🎬</span>')
-
                     full_response_html = f"""
-                    <div class='reasoning-section'>
-                    <h3 style='color: #f0e68c; text-align: center;'>🔍 Результаты поиска:</h3>
-                    <div class='films-list'>
-                    {reasoning_html}
-                    </div>
-                    </div>
-                    <br>
-                    <div style='border-top: 2px solid #f0e68c; margin: 20px 0;'></div>
-                    <br>
-                    <div class='final-answer-section'>
-                    <h3 style='color: #f0e68c; text-align: center;'>📋 Итоговый ответ:</h3>
-                    <div class='final-answer'>
-                    {final_answer_html}
-                    </div>
+                    <div style="text-align: center; padding: 20px; background-color: #2b2b2b; border-radius: 10px; border: 1px solid #ff6b6b;">
+                        <h3 style="color: #ff6b6b;">🚫 Извините, такого нет в базе</h3>
+                        <p style="color: #cccccc;">Похоже, мой архив Тима Бёртона не содержит ответа на этот вопрос.</p>
+                        <br>
+                        <a href="{google_search_url}" target="_blank" style="text-decoration: none;">
+                            <div style="
+                                display: inline-block;
+                                background-color: #4285F4;
+                                color: white;
+                                padding: 10px 20px;
+                                border-radius: 5px;
+                                font-weight: bold;
+                                transition: 0.3s;
+                                ">
+                                🔍 Поискать "{user_query}" в интернете
+                            </div>
+                        </a>
                     </div>
                     """
-                    
-                except ValueError:
-                    # Если формат не соответствует ожидаемому (например, пришла фраза об отсутствии данных)
-                    # Выводим просто текст ответа
-                    full_response_html = answer.replace("[РАССУЖДЕНИЯ]", "").replace("[ОТВЕТ]", "").strip()
-                    full_response_html = f'<div class="answer-text" style="font-size: 1.2em; text-align: center; color: #ff6b6b;">{full_response_html}</div>'
+                else:
+                    # Если ответ найден, форматируем его как обычно
+                    try:
+                        reasoning_part, final_answer_part = answer.split("[ОТВЕТ]")
+                        reasoning_text = reasoning_part.replace("[РАССУЖДЕНИЯ]", "").strip()
+                        final_answer_text = final_answer_part.strip()
+                        
+                        reasoning_html = reasoning_text.replace('\n', '<br>')
+                        reasoning_html = reasoning_html.replace('🎬', '<span style="font-size: 1.3em;">🎬</span>')
+                        final_answer_html = final_answer_text.replace('\n', '<br>')
+                        final_answer_html = final_answer_html.replace('🎬', '<span style="font-size: 1.2em;">🎬</span>')
 
-                # Выводим результат на страницу
+                        full_response_html = f"""
+                        <div class='reasoning-section'>
+                        <h3 style='color: #f0e68c; text-align: center;'>🔍 Результаты поиска:</h3>
+                        <div class='films-list'>
+                        {reasoning_html}
+                        </div>
+                        </div>
+                        <br>
+                        <div style='border-top: 2px solid #f0e68c; margin: 20px 0;'></div>
+                        <br>
+                        <div class='final-answer-section'>
+                        <h3 style='color: #f0e68c; text-align: center;'>📋 Итоговый ответ:</h3>
+                        <div class='final-answer'>
+                        {final_answer_html}
+                        </div>
+                        </div>
+                        """
+                    except ValueError:
+                        # Если формат нарушен, но это не флаг ошибки
+                        full_response_html = answer.replace('\n', '<br>')
+
+                # Выводим результат
                 answer_placeholder.markdown(full_response_html, unsafe_allow_html=True)
 
             except Exception as e:
                 answer_placeholder.markdown(f'<div class="error-message">🎃 Произошла ошибка: {e}</div>', unsafe_allow_html=True)
     
-    # Если пользователь нажал кнопку, но не ввел вопрос
     elif not user_query and ask_button:
         answer_placeholder.markdown('<div class="warning-message">❓ Пожалуйста, введите ваш вопрос!</div>', unsafe_allow_html=True)
 
-# Если база знаний не загрузилась или API ключ не установлен
 elif not works_dataframe:
-    answer_placeholder.markdown('<div class="error-message">💀 Критическая ошибка: Не удалось загрузить базу знаний. Проверьте файл "tim_burton_data.csv".</div>', unsafe_allow_html=True)
+    answer_placeholder.markdown('<div class="error-message">💀 Критическая ошибка: Не удалось загрузить базу знаний.</div>', unsafe_allow_html=True)
 elif not GROQ_API_KEY:
-    answer_placeholder.markdown('<div class="error-message">🔑 Ошибка API: Не установлен ключ GROQ. Проверьте ваши секреты Streamlit или переменную окружения.</div>', unsafe_allow_html=True)
+    answer_placeholder.markdown('<div class="error-message">🔑 Ошибка API: Не установлен ключ GROQ.</div>', unsafe_allow_html=True)
 
-# --- Дополнительная информация в сайдбаре ---
+# --- Сайдбар ---
 with st.sidebar:
     st.markdown("### 💡 Примеры запросов:")
     st.markdown("""
     - **Фильмы с рейтингом 18+**
     - **Самые дорогие фильмы**  
     - **Фильмы 90-х годов**
-    - **Фильмы с Джонни Деппом**
-    - **Фильмы ужасов**
-    - **Фильмы с самым высоким бюджетом**
-    - **Фильмы выпущенные после 2000 года**
     """)
-    
-    st.markdown("### 📊 О базе данных:")
-    if works_dataframe is not None:
-        st.write(f"Всего произведений: **{len(works_dataframe)}**")
-        st.write(f"Годы: **{works_dataframe['Release year'].min()} - {works_dataframe['Release year'].max()}**")
-    
-    st.markdown("---")
-    st.markdown("### 🦇 О Тиме Бёртоне")
-    st.markdown("""
-    Тим Бёртон - американский режиссёр, продюсер и мультипликатор, 
-    известный своим уникальным готическим стилем и сюрреалистичными 
-    произведениями.
-    """)
-    
     st.markdown("---")
     if st.button("⬅️ Назад", use_container_width=True, key="back_main"):
         st.markdown("""
         <div style='background-color: #2b2b2b; padding: 15px; border-radius: 10px; border: 1px solid #f0e68c;'>
             <h4 style='color: #f0e68c; margin-top: 0;'>Перейти на главную страницу</h4>
-            <p style='margin-bottom: 10px;'>Нажмите на ссылку ниже:</p>
-            <a href='https://quixotic-shrimp-ea9.notion.site/9aabb68bd7004965819318e32d8ff06e?v=2b4a0ca7844a80d6aa8a000c6a7e5272' 
-               target='_blank' 
-               style='color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 16px;'>
-               🏠 Главная страница проекта
-            </a>
-            <p style='margin-top: 10px; font-size: 12px; color: #ccc;'>Ссылка откроется в новой вкладке</p>
+            <a href='https://quixotic-shrimp-ea9.notion.site/9aabb68bd7004965819318e32d8ff06e?v=2b4a0ca7844a80d6aa8a000c6a7e5272' target='_blank' style='color: #ff6b6b; font-weight: bold;'>🏠 Главная страница проекта</a>
         </div>
         """, unsafe_allow_html=True)
